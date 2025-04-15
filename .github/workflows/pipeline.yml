@@ -23,11 +23,13 @@ jobs:
       - name: Verify Java Version
         run: java -version
 
+      - name: Run the Maven verify phase
+        run: mvn --batch-mode --update-snapshots -e -X verify
+        
       - name: Build with Maven
         run: mvn clean install
       
-      - name: Run the Maven verify phase
-        run: mvn --batch-mode --update-snapshots -e -X verify
+
 
       - name: Package workflow data as artifacts
         run: mkdir staging && cp target/*.jar staging
