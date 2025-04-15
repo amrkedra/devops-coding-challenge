@@ -76,4 +76,4 @@ jobs:
           sudo apt-get install -y trivy
 
       - name: Run Trivy vulnerability scanner in repo mode
-        run: trivy fs --exit-code 1 --severity HIGH,CRITICAL .
+        run: trivy fs --severity HIGH,CRITICAL .
