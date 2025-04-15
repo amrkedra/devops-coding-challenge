@@ -10,6 +10,21 @@ jobs:
   Build:
     name: Maven-Build
     runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: dev
+          MYSQL_DATABASE: challenge
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -19,17 +34,20 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      
-      - name: Verify Java Version
-        run: java -version
+
+      - name: Wait for MySQL to be ready
+        run: |
+          echo "Waiting for MySQL to be ready..."
+          for i in {1..15}; do
+            mysqladmin ping -h 127.0.0.1 -u root -pdev --silent && break
+            echo "Waiting..."; sleep 4
+          done
 
       - name: Run the Maven verify phase
         run: mvn --batch-mode --update-snapshots -e -X verify
-        
+
       - name: Build with Maven
         run: mvn clean install
-      
-
 
       - name: Package workflow data as artifacts
         run: mkdir staging && cp target/*.jar staging
