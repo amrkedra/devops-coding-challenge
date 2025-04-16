@@ -119,6 +119,6 @@ jobs:
         with:
           args: >
             -Dsonar.organization=amrkedra
-            -Dsonar.projectKey=amrkedra_End-to-End-Kubernetes-Three-Tier-DevSecOps-Project
+            -Dsonar.projectKey=amrkedra_devops-coding-challenge
             -Dsonar.sources=.
             -Dsonar.verbose=true
