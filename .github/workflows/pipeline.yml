@@ -7,7 +7,6 @@ on:
     branches: [ test ]
 
 jobs:
-
   Build:
     name: Maven-Build
     runs-on: ubuntu-latest
@@ -42,7 +41,6 @@ jobs:
           SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/challenge?createDatabaseIfNotExist=true
           SPRING_DATASOURCE_USERNAME: root
           SPRING_DATASOURCE_PASSWORD: dev
-          SPRING_APPLICATION_NAME: app
 
       - name: Package workflow data as artifacts
         run: mkdir staging && cp target/*.jar staging
@@ -61,16 +59,66 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run Trivy vulnerability scanner in repo mode
+      - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.28.0
         with:
           scan-type: 'fs'
           ignore-unfixed: true
           format: 'sarif'
-          output: 'trivy-results.sarif'
+          output: './trivy-results.sarif'
           severity: 'CRITICAL'
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: 'trivy-results.sarif'
+          sarif_file: './trivy-results.sarif'
+
+  Dependency-Check:
+    name: OWASP Dependency-Check
+    needs: Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run OWASP Dependency-Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: "crewmeister-service"
+          path: "."
+          format: "HTML"
+          out: "dependency-check-report.html"
+
+      - name: Upload Security Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dependency Check Report
+          path: dependency-check-report.html
+
+  Analysis:
+    name: SonarQube-Analysis
+    needs: Dependency-Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Analyze with SonarCloud
+        uses: SonarSource/sonarcloud-github-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.organization=amrkedra
+            -Dsonar.projectKey=amrkedra_End-to-End-Kubernetes-Three-Tier-DevSecOps-Project
+            -Dsonar.sources=.
+            -Dsonar.verbose=true
