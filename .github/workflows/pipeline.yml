@@ -37,9 +37,7 @@ jobs:
           java-version: '17'
 
       - name: Build and verify with Maven
-        uses: s4u/maven-action@v2
-        with:
-          maven-args: "clean verify -e -X"
+        run: mvn clean verify -e -X
         env:
           SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/challenge?createDatabaseIfNotExist=true
           SPRING_DATASOURCE_USERNAME: root
