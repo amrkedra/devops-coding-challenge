@@ -133,5 +133,10 @@ jobs:
       - name: Build Docker image
         run: docker build -t crewmeister-service:latest app
 
-      # - name: Run Docker container
-      #   run: docker run -d -p 8080:8080 crewmeister-service:latest
+      - name: Build and Push Image
+      uses: docker/build-push-action@v6
+      with:
+        push: true
+        context: ./  # Ensure "cart" folder contains Dockerfile
+        tags: amrkedra/crewmeister:${{ env.BUILD_NUMBER }}
+        load: true
